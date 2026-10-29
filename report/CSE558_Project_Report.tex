@@ -1,0 +1,726 @@
+%=======================================================================
+%  CSE558 Data Science - Midterm Project Report Template
+%  Monsoon 2026, IIIT-Delhi
+%
+%  How to use this template
+%   1. Set your project title in the EDIT THIS block below.
+%   2. Replace everything in LIGHT BLUE with your own text and numbers.
+%      The numbers in the example are made up for illustration.
+%   3. Grey italic lines are instructions. Delete them as you write, or
+%      hide them all at once with \showhintsfalse.
+%   4. Upload your plots to the project and put their file names in
+%      \figfile{...}{...}. Until a file exists, a labelled box is shown.
+%
+%  Sections 1-5 follow items 1-5 of the report guidelines; Section 6 is
+%  the limitations of your analysis. The link to your code (item 6) goes
+%  at the top. At most 8 pages.
+%  Compile with pdfLaTeX (Overleaf's default setting works), twice.
+%=======================================================================
+\documentclass[10pt,a4paper,twocolumn]{article}
+
+%========================= EDIT THIS =========================
+% Your project title: it sets the heading AND the PDF's title.
+\newcommand{\projecttitle}{Data Science Midterm Project Report\\[2pt]Team: Graph Out Loud}
+\newcommand{\projectsubtitle}{Delayed in New York: does weather, airline or season decide it,
+  and can a late flight catch up in the air?}
+\newif\ifshowhints
+\showhintsfalse     % \showhintsfalse hides every grey instruction line
+%=============================================================
+
+%-------------------------------------------- fonts (no need to edit)
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \IfFileExists{carlito.sty}%
+    {\usepackage[sfdefault]{carlito}}%              Calibri look
+    {\usepackage[scaled=0.92]{helvet}\renewcommand{\familydefault}{\sfdefault}}%
+  \usepackage{courier}
+\else
+  \usepackage[no-math]{fontspec}
+  \setmainfont{Carlito}[Extension=.ttf, UprightFont=*-Regular, BoldFont=*-Bold,
+    ItalicFont=*-Italic, BoldItalicFont=*-BoldItalic]
+\fi
+
+%----------------------------------------------------------- packages
+\usepackage[margin=18mm,bottom=20mm,columnsep=7mm]{geometry}
+\usepackage{amsmath}
+\usepackage{xcolor}
+\usepackage{graphicx}
+\usepackage{tabularx}
+\usepackage{array}
+\usepackage{booktabs}
+\usepackage{enumitem}
+\usepackage{titlesec}
+\usepackage{needspace}
+\usepackage[font=small,labelfont=bf]{caption}
+\usepackage[hidelinks]{hyperref}
+\hypersetup{pdftitle={Data Science Midterm Project Report - Team Graph Out Loud},
+            pdfsubject={CSE558 Data Science, Monsoon 2026: Midterm Project Report}}
+
+%------------------------------------------------------------- layout
+\definecolor{eg}{HTML}{000000}         % our own text (was light blue in the template)
+\definecolor{hintgrey}{gray}{0.58}     % instructions (light grey)
+
+\titleformat{\section}{\normalfont\large\bfseries}{\thesection.}{0.5em}{}
+\titlespacing*{\section}{0pt}{12pt}{3pt}
+\titleformat{\subsection}{\normalfont\normalsize\bfseries}{\thesubsection}{0.5em}{}
+\titlespacing*{\subsection}{0pt}{10pt}{2pt}
+\newcommand{\sectionbreak}{\needspace{10\baselineskip}}
+\newcommand{\subsectionbreak}{\needspace{10\baselineskip}}
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{4pt}
+\setlist{leftmargin=1.2em, itemsep=2pt, topsep=2pt, parsep=0pt}
+\renewcommand{\arraystretch}{1.25}
+\setlength{\tabcolsep}{4pt}
+\newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
+\newcolumntype{Y}{>{\raggedright\arraybackslash}X}
+\newcolumntype{K}[1]{>{\raggedright\arraybackslash\bfseries\boldmath}p{#1}}  % bold labels
+
+%--------------------------------------------------------- shorthands
+% Instruction line. Delete these as you fill the template in.
+\newcommand{\hint}[1]{\ifshowhints{\footnotesize\itshape\color{hintgrey}#1\par}\fi}
+% Worked example: inline or in a table cell. REPLACE the contents.
+\newcommand{\eg}[1]{\textcolor{eg}{#1}}
+% Worked example running over a whole paragraph.
+\newcommand{\egblock}[1]{{\color{eg}#1\par}}
+% Bold label followed by an example.
+\newcommand{\field}[2]{\textbf{#1}~\eg{#2}\par}
+% Part a)-c) of a test, and a small bold heading.
+\newcommand{\tpart}[2]{\par\needspace{12\baselineskip}\smallskip\textbf{#1)~#2}\par}
+\newcommand{\minihead}[1]{\par\needspace{8\baselineskip}\smallskip\textbf{#1}\par}
+% Column and file names.
+\newcommand{\code}[1]{\texttt{#1}}
+% \figfile{file}{height}: your plot, or a labelled box until the file exists.
+\newcommand{\figfile}[2]{%
+  \IfFileExists{#1}%
+    {\includegraphics[width=\linewidth,height=#2,keepaspectratio]{#1}}%
+    {\fbox{\parbox[c][#2][c]{\dimexpr\linewidth-2\fboxsep-2\fboxrule\relax}%
+      {\centering\small\itshape\color{hintgrey}Your plot: \detokenize{#1}}}}}
+
+%=======================================================================
+\begin{document}
+
+\twocolumn[%
+{\small\bfseries CSE558 Data Science\ \ \textbullet\ \ Midterm Project Report\ \ \textbullet\ \ Monsoon 2026\par}
+\vspace{4pt}
+{\LARGE\bfseries\raggedright\projecttitle\par}
+\vspace{4pt}
+{\large\raggedright\projectsubtitle\par}
+\vspace{6pt}
+\rule{\linewidth}{1pt}
+
+{\small
+\begin{tabularx}{\linewidth}{@{}K{2.4cm} Y@{}}
+\toprule
+Group name & Graph Out Loud \\
+Dataset & BTS On-Time Performance, all 2013 departures from JFK, LGA and EWR (transtats.bts.gov), with NOAA hourly airport weather; packaged as github.com/hadley/nycflights13 and pypi.org/project/nycflights13 \\
+Code & \href{https://github.com/Nikkumar-12345/cse558-midterm-graph-out-loud}{github.com/Nikkumar-12345/cse558-midterm-graph-out-loud} (\code{analysis.py} and README) \\
+\bottomrule
+\end{tabularx}}
+
+\vspace{2pt}
+{\small
+\begin{tabularx}{\linewidth}{@{}L{0.5cm} L{3.0cm} L{1.5cm} L{4.2cm} Y@{}}
+\toprule
+\textbf{\#} & \textbf{Name} & \textbf{Roll no.} & \textbf{Institute email} & \textbf{Contribution} \\
+\midrule
+1 & Vatsal Garg & 2024611 & vatsal24611@iiitd.ac.in & Dataset and preprocessing (1, 2, 3) \\
+2 & Nikhil Kumar & 2024382 & nikhil24382@iiitd.ac.in & Exploratory data analysis and problem statements (4) \\
+3 & Shakti & 2024519 & shakti24519@iiitd.ac.in & In-flight delay recovery and weather impact analysis (5: P1, P2) \\
+4 & Navanshu Nagar & 2024374 & navanshu24374@iiitd.ac.in & Carrier performance and seasonal cancellation analysis (5: P3, P4) \\
+5 & M.\ Rayhankhan & 2022269 & rayhan22269@iiitd.ac.in & Weekly delay patterns, synthesis, limitations, code and README (5, 6) \\
+\bottomrule
+\end{tabularx}}
+\vspace{12pt}
+]
+
+%-----------------------------------------------------------------------
+\section{Dataset}
+
+\field{Source:}{U.S. Bureau of Transportation Statistics (BTS) On-Time Performance records for
+every domestic flight that left New York City's three airports (JFK, LaGuardia, Newark) in 2013,
+as released in the \code{nycflights13} package. One row is one scheduled flight. We join the
+package's \code{weather} table (NOAA hourly observations at the same airports, 26{,}115 rows
+$\times$ 15 columns) on airport and hour.}
+
+\field{What is raw about it:}{clock times are integers (\code{517} is 05:17, and \code{2400}
+appears 179 times); a cancelled flight is not labelled and shows up only as a missing
+\code{dep\_time}; a diverted flight shows up as a missing \code{arr\_delay}; the weather table has
+a wind speed of 1{,}048 mph, 165 missing hours and a gust column that is 79.6\% empty; delays run
+from $-86$ to $+1{,}301$ minutes.}
+
+{\small
+\begin{tabularx}{\linewidth}{@{}L{3.0cm} Y Y@{}}
+\toprule
+ & \textbf{Raw file} & \textbf{After encoding} \\
+\midrule
+Instances (rows) & 336{,}776 & 336{,}776 \\
+Attributes (columns) & 19 & 167 \\
+Instances $\times$ attributes & 6{,}398{,}744 & 56{,}241{,}592 \\
+\bottomrule
+\end{tabularx}}
+
+\field{Size check:}{raw, $336{,}776\times19=6{,}398{,}744\ge3{,}000{,}000$, so the requirement is
+already met. After encoding, $336{,}776\times167=56{,}241{,}592$. The 167 attributes are 28
+numeric columns (12 from the flights file, with clock times in minutes; 8 joined weather values;
+a \code{gusty} flag; and 7 derived columns: \code{gain}, \code{cancelled}, \code{wet},
+\code{incomplete}, \code{weather\_missing}, \code{weekend}, \code{late15}), 4 sine/cosine columns
+for departure clock time and day of year, and 135 one-hot columns: \code{dest} (105),
+\code{carrier} (16), \code{weekday} (7), \code{season} (4) and \code{origin} (3).
+\code{analysis.py} builds this matrix and checks its shape.}
+
+\minihead{Key features}
+{\footnotesize
+\begin{tabularx}{\linewidth}{@{}L{2.2cm} L{1.5cm} Y@{}}
+\toprule
+\textbf{Feature} & \textbf{Type} & \textbf{Real-world meaning} \\
+\midrule
+\code{dep\_delay} & continuous & minutes the plane left the gate after schedule (negative = early) \\
+\code{arr\_delay} & continuous & minutes late at the destination gate \\
+\code{gain} & continuous & derived: \code{dep\_delay} $-$ \code{arr\_delay}, minutes made up en route \\
+\code{carrier} & nominal & operating airline, 16 levels \\
+\code{cancelled} & binary & derived: the flight never departed \\
+\code{precip} & continuous & precipitation (inches) at the origin in the scheduled hour \\
+\code{wet} & binary & derived: \code{precip} $>0$ \\
+\code{season} & nominal & from month: Dec--Feb winter, Mar--May spring, Jun--Aug summer, Sep--Nov autumn \\
+\code{origin}, \code{dest} & nominal & 3 NYC airports; 105 destinations \\
+\bottomrule
+\end{tabularx}}
+
+%-----------------------------------------------------------------------
+\section{Data preparation}
+
+{\footnotesize
+\begin{tabularx}{\linewidth}{@{}L{1.9cm} L{2.3cm} Y@{}}
+\toprule
+\textbf{Issue found} & \textbf{What we did} & \textbf{Why, and not the alternative} \\
+\midrule
+8{,}255 missing \code{dep\_time}, \code{dep\_delay}
+ & coded \code{cancelled} $=1$; kept the rows
+ & a missing departure is a cancellation. Dropping the rows would delete Test 4's response. \\
+1{,}175 departed, no \code{arr\_delay}
+ & flagged \code{incomplete}; left out of arrival tests only
+ & diverted or unrecorded arrivals. An imputed arrival delay would create a made-up gain in
+   Test 1. \\
+2{,}512 missing \code{tailnum}
+ & left as is
+ & all 2{,}512 are cancelled flights (checked), so no aircraft was assigned \\
+clock times as integers, \code{2400}
+ & converted to minutes after midnight, mod 1440
+ & 12:59 to 13:00 is 1 minute, not 41 \\
+wind speed 1{,}048 mph (1 row)
+ & set to missing
+ & physically impossible; a sensor error \\
+\code{wind\_gust} 79.6\% missing
+ & replaced by a 0/1 \code{gusty} flag
+ & gusts are recorded only when there is one, so missing means none \\
+165 weather hours absent
+ & left join on (origin, UTC hour); 1{,}556 flights flagged \code{weather\_\allowbreak missing}
+ & an inner join would drop these flights from every test; only Test 2 leaves them out. The UTC
+   hour avoids the repeated 1~a.m.\ hour when clocks go back (3 such rows). \\
+27{,}789 arrival delays above the IQR fence (60.5 min)
+ & kept, not capped
+ & long delays are real. Capping would pull every mean down; the tests below are chosen to cope
+   with the skew. \\
+duplicates
+ & checked full rows, (date, carrier, flight, origin, scheduled time), and (origin, hour) in
+   weather
+ & none found \\
+\code{dest} 105, \code{carrier} 16 levels
+ & one-hot; clock time and day of year as sine/cosine
+ & codes have no order; sine/cosine keep 23:00 next to 00:00 \\
+\bottomrule
+\end{tabularx}}
+
+%-----------------------------------------------------------------------
+\section{What changed after preparation}
+
+{\footnotesize
+\begin{tabularx}{\linewidth}{@{}L{2.9cm} L{1.5cm} Y@{}}
+\toprule
+\textbf{Measure} & \textbf{Before} & \textbf{After} \\
+\midrule
+Rows & 336{,}776 & 336{,}776 (none dropped) \\
+Attributes & 19 & 167 \\
+Unexplained missing \code{dep\_delay} & 8{,}255 & 0: all labelled \code{cancelled} (2.45\%) \\
+Unexplained missing \code{arr\_delay} & 9{,}430 & 0: 8{,}255 cancelled + 1{,}175 \code{incomplete} \\
+Flights with weather & 0 (separate table) & 335{,}220; 1{,}556 flagged \\
+Impossible wind values & 1 & 0 \\
+Clock values \code{2400} & 179 & 0 \\
+Duplicate rows & 0 & 0 \\
+Arrival delays above IQR fence & 27{,}789 (8.5\%) & 27{,}789, kept on purpose \\
+\bottomrule
+\end{tabularx}}
+
+\egblock{No row was lost. The 8{,}255 missing departures became a response variable
+(\code{cancelled}). Arrival delay keeps its skewness of 3.7 and excess kurtosis of 29 because the
+long tail was kept, so each test below is checked with a rank-based or day-level version.}
+
+%-----------------------------------------------------------------------
+\section{Basic questions and problem statement}
+
+\begin{figure}[!ht]
+  \figfile{fig_arrdelay.pdf}{3.6cm}
+  \caption{57.7\% of completed flights arrive early (median $-5$ min), but the long right tail
+  (skewness 3.7) pulls the mean up to $+6.9$.}
+\end{figure}
+
+\begin{figure}[!ht]
+  \figfile{fig_gain.pdf}{3.6cm}
+  \caption{Flights that leave on time make up about 6 min en route; flights that leave 30 min to
+  2 h late make up less, not more.}
+\end{figure}
+
+\begin{figure}[!ht]
+  \figfile{fig_hour_wet.pdf}{3.6cm}
+  \caption{Delay builds through the day, and hours with precipitation sit above dry hours at every
+  departure time.}
+\end{figure}
+
+\begin{figure}[!ht]
+  \figfile{fig_cancel_daily.pdf}{3.6cm}
+  \caption{The median day cancels 0.73\% of flights; on 8 and 9 February (a blizzard) more than
+  half were cancelled.}
+\end{figure}
+
+\minihead{Basic questions}
+\begin{enumerate}[label=\arabic*.]
+  \item Which airline has the highest average arrival delay? Frontier (F9, 21.9 min), but it has
+  only 681 completed flights; among the 11 large carriers, AirTran (FL, 20.1 min).
+  \item Which month or season has the most cancellations? February (1{,}261 flights, 5.05\%);
+  winter by season (3.50\%).
+  \item Are departure and arrival delays related? Yes: $r=0.91$ over all completed flights and
+  0.94 over flights that left 15 or more minutes late.
+\end{enumerate}
+
+\minihead{Our problem statements}
+
+\noindent\fbox{\begin{minipage}{\dimexpr\linewidth-2\fboxsep-2\fboxrule\relax}
+\textbf{P1 (primary).} Among flights that leave at least 15 minutes late, is the average time
+made up in the air more than 5 minutes?
+
+\smallskip
+\textbf{P2.} Is a flight scheduled in an hour with precipitation at its origin delayed more than
+15 minutes longer, on average, than one scheduled in a dry hour?
+
+\smallskip
+\textbf{P3.} Do carriers differ in arrival delay, and by 10 minutes or more for any pair?
+
+\smallskip
+\textbf{P4.} Does the cancellation rate depend on season, and does that survive removing the worst
+storm days?
+
+\smallskip
+\textbf{P5.} Do weekend days have a different mean arrival delay from weekdays?
+\end{minipage}}
+
+\field{How they differ from the basic questions:}{the basic questions summarise one column each.
+P1, P2 and P4 need columns that no raw row has (\code{gain}, \code{wet} from the hourly weather
+join, \code{cancelled}), and each statement fixes a threshold for a difference that matters.}
+
+%-----------------------------------------------------------------------
+\section{Statistical inferences}
+
+\field{Rows tested:}{Test 1: the 72{,}420 completed flights with \code{dep\_delay} $\ge15$.
+Test 2: the 326{,}993 departed flights with weather (21{,}086 wet, 305{,}907 dry). Test 3: the
+325{,}041 completed flights of the 11 carriers with at least 1{,}000 of them (AS, F9, YV, HA and
+OO, 2{,}305 flights, are left out). Test 4: all 336{,}776 scheduled flights, summarised as 365
+daily rates. Test 5: the 327{,}346 completed flights, summarised as 365 daily means.}
+
+\field{How the hypotheses are set:}{P1 and P2 ask whether an effect is larger than a threshold,
+so the threshold is the boundary of $H_0$. P3 to P5 ask whether groups differ, so $H_0$ is no
+difference and the threshold is used to judge the confidence interval. Flights on the same day
+share weather and congestion, so they are not independent: the main tests use standard errors
+clustered by day (a t distribution with one less degree of freedom than the number of days) or
+take the day as the unit.}
+
+%------------------------------------------------------------ Test 1
+\subsection*{Test 1 \textbullet\ In-flight delay recovery (P1): do late flights make up more than
+5 minutes in the air?}
+
+\tpart{a}{Hypotheses, written before running the test}
+{\small
+\begin{tabularx}{\linewidth}{@{}K{3.4cm} Y@{}}
+\toprule
+$H_0$ & $\mu_g\le5$ \\
+$H_1$ & $\mu_g>5$ \\
+Significance level & $\alpha=0.05$ \\
+Side & one-sided (right) \\
+Test & one-sample t-test on $g$ (paired design), standard errors clustered by day \\
+Smallest difference that matters & 5 minutes \\
+\bottomrule
+\end{tabularx}}
+
+\egblock{$g=\code{dep\_delay}-\code{arr\_delay}$ for one flight; $\mu_g$ is its mean over
+flights that left at least 15 minutes late. 5 minutes is a third of the FAA's 15-minute line for a
+delayed flight; a smaller gain rarely changes whether a passenger arrives late.}
+
+\tpart{b}{Other tests we considered}
+\egblock{Each flight gives two measurements of the same trip, so the data are paired and the test
+works on the differences $g$. With $n=72{,}420$ the mean of $g$ is close to normal despite its
+skewness ($-1.3$). Late flights on one day share the same congestion, so the standard error is
+clustered by day (365 days).}
+{\footnotesize
+\begin{tabularx}{\linewidth}{@{}L{2.4cm} Y@{}}
+\toprule
+\textbf{Also considered} & \textbf{Why we did not use it} \\
+\midrule
+Paired t-test, flights independent & ignores the day clustering; its standard error is 7 times
+smaller. Result: $t=-15.18$ (72{,}419), CI 3.63 to 3.95. \\
+Wilcoxon signed-rank on $g-5$ & tests the pseudo-median, which differs from the mean when $g$ is
+skewed. Result: $z=8.08$, $p<0.001$ in favour of $>5$. \\
+Sign test against 5 & tests the median and ignores sizes: 38{,}125 flights gain more than 5 min
+and 32{,}510 less, $p<0.001$. Median gain 7 min (day-bootstrap CI 6 to 7). \\
+Welch two-sample t & treats departure and arrival delays as unrelated samples; against 0 it gives
+$t=11.5$ instead of 47.5 for the paired test \\
+z-test & needs a known $\sigma$ \\
+\bottomrule
+\end{tabularx}}
+
+\tpart{c}{Result}
+{\small
+\begin{tabularx}{\linewidth}{@{}K{3.4cm} Y@{}}
+\toprule
+Estimate & $+3.79$ min (left 64.6 min late, arrived 60.9 min late) \\
+95\% confidence interval & 2.71 to 4.87 min (day-clustered) \\
+Test statistic (d.f.) & $t=-2.21$ (364) \\
+p-value & 0.99 (one-sided) \\
+Decision & fail to reject $H_0$ \\
+\bottomrule
+\end{tabularx}}
+
+\egblock{Late flights make up about 4 minutes on average, 6\% of their 64.6-minute delay. Against
+zero the gain is clear ($t=6.92$), but the whole interval lies below 5 minutes, and the reverse
+test ($H_1{:}\ \mu_g<5$) gives $p=0.014$. Cohen's $d_z=0.18$.}
+
+\egblock{The median tells a different story: the typical late flight gains 7 minutes, and the
+Wilcoxon and sign tests put it above 5. The mean is lower because a minority of flights lose a
+lot of time in the air. So the answer to P1, which is about the average, is no.}
+
+\egblock{The gain is also not a catch-up. Flights that left less than 15 minutes late gain more
+(6.2 min), the gain does not grow with departure delay (Spearman $\rho=-0.02$), and late flights
+fly their route about as fast as the rest (air time 0.85 min above the route median, against
+1.17 for other flights). It looks like schedule padding that every flight gets (Figure 2).}
+
+\egblock{With one mean per day instead (365 days, each weighted equally) the gain is 5.86 min
+(CI 4.99 to 6.72; $t=1.94$, $p=0.027$ against 5). This is a different average: on the quarter of
+days with the fewest late flights they gain 10.1 min, on the quarter with the most they gain
+nothing ($-0.1$ min; Spearman $\rho=-0.46$ between the two). Weighting days equally gives the
+quiet days more say. On a bad day, late flights do not make up time.}
+
+%------------------------------------------------------------ Test 2
+\subsection*{Test 2 \textbullet\ Weather impact on departures (P2): does precipitation add more
+than 15 minutes of delay?}
+
+\tpart{a}{Hypotheses, written before running the test}
+{\small
+\begin{tabularx}{\linewidth}{@{}K{3.4cm} Y@{}}
+\toprule
+$H_0$ & $\mu_{\text{wet}}-\mu_{\text{dry}}\le15$ \\
+$H_1$ & $\mu_{\text{wet}}-\mu_{\text{dry}}>15$ \\
+Significance level & $\alpha=0.05$ \\
+Side & one-sided (right) \\
+Test & difference in means (Welch form), standard errors clustered by day \\
+Smallest difference that matters & 15 minutes \\
+\bottomrule
+\end{tabularx}}
+
+\egblock{$\mu_{\text{wet}}$, $\mu_{\text{dry}}$: mean departure delay of flights scheduled in an
+hour with and without precipitation at their origin. 15 minutes is the FAA's line for a delayed
+flight.}
+
+\tpart{b}{Other tests we considered}
+\egblock{Two independent groups, a continuous response and unknown $\sigma$ call for a two-sample
+t-test; the spreads differ (SD 59.2 vs 38.3 min; Levene $W=3{,}916$, $p<0.001$), so the Welch
+form. Flights in one hour share its weather, and the hourly mean delay at an airport is strongly
+autocorrelated (lag-1 $r=0.81$), so standard errors are clustered by day.}
+{\footnotesize
+\begin{tabularx}{\linewidth}{@{}L{2.4cm} Y@{}}
+\toprule
+\textbf{Also considered} & \textbf{Why we did not use it} \\
+\midrule
+Welch t-test, flights independent & ignores that all flights in a wet hour share the same weather.
+Result: $t=11.0$ (22{,}314), CI 18.7 to 20.4. \\
+Pooled t-test & equal variances are rejected; against 0 it gives $t=68.8$ \\
+Mann--Whitney U & compares ranks, not minutes. $P(\text{wet}>\text{dry})=0.64$, $p<0.001$;
+medians 5 vs $-2$ min. \\
+Permutation test & shuffling single flights breaks the clustering; gives only a p-value \\
+z-test & needs a known $\sigma$ \\
+\bottomrule
+\end{tabularx}}
+
+\tpart{c}{Result}
+{\small
+\begin{tabularx}{\linewidth}{@{}K{3.4cm} Y@{}}
+\toprule
+Estimate & $+19.6$ min (30.9 wet, 11.4 dry) \\
+95\% confidence interval & 14.8 to 24.3 min (day-clustered) \\
+Test statistic (d.f.) & $t=1.88$ (363) \\
+p-value & 0.030 (one-sided) \\
+Decision & reject $H_0$ at 0.05 \\
+\bottomrule
+\end{tabularx}}
+
+\egblock{Precipitation goes with about 20 more minutes of departure delay, and against zero this is
+clear ($t=8.09$). That it is more than 15 minutes is borderline. The 95\% interval starts at 14.8;
+the one-sided test at 0.05 matches the 90\% interval, 15.6 to 23.5, which just clears 15. 40\% of
+wet-hour departures are 15 or more minutes late against 21\% of dry ones, and delay rises with
+intensity: 27.3, 30.4 and 40.9 min for up to 0.02, 0.02 to 0.1 and over 0.1 inch.}
+
+\egblock{Two checks. (i) One row per airport-hour (19{,}326 hours) gives $+20.5$ min (CI 18.3 to
+22.6; Welch $t=5.04$, d.f.\ 1{,}328, $p<0.001$ against 15), but neighbouring hours are still
+correlated. (ii) Rain may fall more often in months and hours that have more delay anyway. With
+month, hour and airport fixed effects (errors clustered by day) the gap is $+18.5$ min (CI 14.1 to
+22.9; $t=1.57$, $p=0.059$), and $H_0$ is no longer rejected. Precipitation clearly adds delay;
+that it adds more than 15 minutes is not established.}
+
+%------------------------------------------------------------ Test 3
+\subsection*{Test 3 \textbullet\ Carrier performance (P3): do carriers differ in arrival delay?}
+
+\tpart{a}{Hypotheses, written before running the test}
+{\small
+\begin{tabularx}{\linewidth}{@{}K{3.4cm} Y@{}}
+\toprule
+$H_0$ & the arrival-delay distributions of the 11 carriers are identical \\
+$H_1$ & at least one carrier's delays tend to be larger or smaller \\
+Significance level & $\alpha=0.05$ \\
+Side & omnibus (upper tail of $H$) \\
+Test & Kruskal--Wallis, then Dunn's test with Holm adjustment \\
+Smallest difference that matters & 10 minutes between two carriers \\
+\bottomrule
+\end{tabularx}}
+
+\egblock{10 minutes is two-thirds of the FAA line, a gap a frequent traveller would notice. A rank
+test cannot put minutes in $H_0$, so the threshold is applied to simultaneous 95\% intervals for
+the pairwise mean differences (Games--Howell).}
+
+\tpart{b}{Other tests we considered}
+\egblock{Eleven independent groups, a heavily skewed response (per-carrier skewness 2.6 to 5.4)
+and unequal spreads (Levene $W=207.5$, $p<0.001$). Kruskal--Wallis compares ranks, so a few
+20-hour delays cannot dominate it, and it does not need normality. Dunn's test is the matching
+rank-based follow-up.}
+{\footnotesize
+\begin{tabularx}{\linewidth}{@{}L{2.4cm} Y@{}}
+\toprule
+\textbf{Also considered} & \textbf{Why we did not use it} \\
+\midrule
+One-way ANOVA & assumes equal variances, which Levene rejects. Result: $F=477.7$ (10, 325{,}030),
+same decision. \\
+Welch ANOVA & handles unequal variances but compares means, which the tails drive. Result:
+$F=445.5$ (10, 50{,}794), $\eta^2=0.014$. \\
+55 pairwise t-tests & the chance of at least one false rejection would be $1-0.95^{55}=94\%$ \\
+\bottomrule
+\end{tabularx}}
+
+\tpart{c}{Result}
+{\small
+\begin{tabularx}{\linewidth}{@{}K{3.4cm} Y@{}}
+\toprule
+Estimate & worst (AirTran, FL) minus best (American, AA): $+19.8$ min mean (20.1 vs 0.4);
+medians 5 vs $-9$ \\
+95\% confidence interval & 16.6 to 22.9 min (Games--Howell, simultaneous); median gap 13 to 16
+(bootstrap) \\
+Test statistic (d.f.) & $H=8{,}170.2$ (10) \\
+p-value & $<0.001$ \\
+Decision & reject $H_0$ \\
+\bottomrule
+\end{tabularx}}
+
+\begin{figure}[!ht]
+  \figfile{fig_carriers.pdf}{3.6cm}
+  \caption{Mean arrival delay by carrier with day-clustered 95\% CIs. The grey band spans 10 min
+  above the best carrier; only EV and FL sit clearly outside it.}
+\end{figure}
+
+\egblock{Carriers differ, but carrier explains little: $\varepsilon^2=0.025$, about 2.5\% of the
+variation in ranks. Dunn--Holm finds 53 of 55 pairs different (not AA--VX or B6--WN). Only 14
+pairs differ by 10 minutes or more in mean, and 13 of them involve ExpressJet (EV, 15.8 min) or
+AirTran (FL, 20.1); the other is MQ against AA. Using the simultaneous intervals, 10 pairs are
+more than 10 minutes apart for certain, 34 are less than 10 apart for certain, and 11 are
+undecided. By medians only 6 pairs reach 10 minutes, all involving FL.}
+
+\egblock{Because flights on one day share conditions, we checked the result with the day built
+in. A Friedman test with days as blocks (each carrier's median delay per day, 365 days) gives
+$\chi^2=1{,}144.6$ (10), $p<0.001$, Kendall's $W=0.31$, so the order holds within days. For
+FL $-$ AA, day-clustered errors give CI 17.1 to 22.4 and day fixed effects give $+20.1$ (CI 17.4
+to 22.9). Kruskal--Wallis within each airport is significant at all three (EWR $H=3{,}306$, 9
+d.f.), so the gap is not about which airport a carrier uses.}
+
+%------------------------------------------------------------ Test 4
+\subsection*{Test 4 \textbullet\ Seasonal cancellation risk (P4): do cancellations depend on
+season?}
+
+\tpart{a}{Hypotheses, written before running the test}
+{\small
+\begin{tabularx}{\linewidth}{@{}K{3.4cm} Y@{}}
+\toprule
+$H_0$ & the daily cancellation rate has the same distribution in all four seasons \\
+$H_1$ & it differs in at least one season \\
+Significance level & $\alpha=0.05$ \\
+Side & omnibus (upper tail of $H$) \\
+Test & Kruskal--Wallis on the 365 daily cancellation rates \\
+Smallest difference that matters & 1 percentage point between two seasons \\
+\bottomrule
+\end{tabularx}}
+
+\egblock{Against a yearly rate of 2.45\%, a 1-point gap is a 40\% change in a traveller's risk,
+about 840 extra cancelled flights per season out of New York.}
+
+\tpart{b}{Other tests we considered}
+\egblock{Cancellations come in bursts: the 10 worst days hold 27.2\% of the year's cancellations
+(Figure 4). Flights on one day are cancelled together, so the day is the unit. Daily rates are
+very skewed (median 0.73\%, maximum 57\%) and their spread differs by season (Levene $W=3.1$,
+$p=0.026$), so a rank test.}
+{\footnotesize
+\begin{tabularx}{\linewidth}{@{}L{2.4cm} Y@{}}
+\toprule
+\textbf{Also considered} & \textbf{Why we did not use it} \\
+\midrule
+Chi-square test of independence ($4\times2$) & counts are large enough (smallest expected
+1{,}963), but it treats 336{,}776 flights as independent. Result: $\chi^2=1{,}055.3$ (3); its CI
+for winter $-$ autumn (Newcombe, 2.26 to 2.55 pp) is 12 times narrower than the day-clustered
+one. \\
+G-test, Fisher, logistic regression & same independence assumption as chi-square ($G=1{,}173$) \\
+ANOVA on daily rates & daily means are driven by two storm days. Welch form: $F=7.26$ (3, 190),
+$p<0.001$. \\
+\bottomrule
+\end{tabularx}}
+
+\tpart{c}{Result}
+{\small
+\begin{tabularx}{\linewidth}{@{}K{3.4cm} Y@{}}
+\toprule
+Estimate & rates: winter 3.50\%, summer 2.80\%, spring 2.43\%, autumn 1.10\%; winter $-$ autumn
+$=2.40$ pp \\
+95\% confidence interval & 0.69 to 4.12 pp (day-clustered) \\
+Test statistic (d.f.) & $H=39.9$ (3) \\
+p-value & $<0.001$ \\
+Decision & reject $H_0$ \\
+\bottomrule
+\end{tabularx}}
+
+\egblock{Seasons differ (a day-clustered Wald test on the flight-level rates agrees: $F=6.99$ (3,
+364), $p<0.001$). But the interval for the largest gap reaches down to 0.69, below the 1-point
+threshold. Pairwise day-clustered tests (Holm) separate only autumn from each of the other three;
+winter, spring and summer cannot be told apart.}
+
+\egblock{Winter's lead comes from one storm: 472 flights were cancelled on 8 February and 393 on 9
+February. Dropping those two days puts winter (2.47\%) below summer (2.80\%). Dropping the 10
+worst days, the test still rejects ($H=39.7$, $p<0.001$), with summer 2.69\%, winter 1.92\%,
+spring 1.82\% and autumn 0.88\%; winter $-$ autumn is then 1.04 pp (CI 0.43 to 1.64). On a typical
+day (median daily rate) the gap is 0.67 pp (winter 1.08\%, autumn 0.41\%). Autumn is the lowest
+season in every version; that any season differs by more than 1 point is not shown.}
+
+%------------------------------------------------------------ Test 5
+\subsection*{Test 5 \textbullet\ Weekly delay patterns (P5): weekend versus weekday arrival
+delay}
+
+\tpart{a}{Hypotheses, written before running the test}
+{\small
+\begin{tabularx}{\linewidth}{@{}K{3.4cm} Y@{}}
+\toprule
+$H_0$ & $\mu_{\text{we}}-\mu_{\text{wd}}=0$ \\
+$H_1$ & $\mu_{\text{we}}-\mu_{\text{wd}}\ne0$ \\
+Significance level & $\alpha=0.05$ \\
+Side & two-sided \\
+Test & Welch t-test on daily mean arrival delay (104 weekend days, 261 weekdays) \\
+Smallest difference that matters & 5 minutes \\
+\bottomrule
+\end{tabularx}}
+
+\egblock{$\mu_{\text{we}}$, $\mu_{\text{wd}}$: mean daily arrival delay on Saturday--Sunday and
+Monday--Friday. Two-sided, because fewer flights (less congestion) and more leisure travellers
+(slower boarding) push in opposite directions. Weekend is a property of a day, so the day is the
+unit.}
+
+\tpart{b}{Other tests we considered}
+\egblock{Two independent groups of days, unknown $\sigma$, and unequal spreads of the daily means
+(SD 13.4 vs 18.2 min; Levene $W=6.0$, $p=0.015$), so the Welch form.}
+{\footnotesize
+\begin{tabularx}{\linewidth}{@{}L{2.4cm} Y@{}}
+\toprule
+\textbf{Also considered} & \textbf{Why we did not use it} \\
+\midrule
+Welch t-test on flights & treats flights on one day as independent: $t=-39.1$ (160{,}784), CI
+$-6.9$ to $-6.3$. Clustered by day: $-6.6$ min (CI $-9.9$ to $-3.3$). \\
+Pooled t-test & equal variances are rejected; $t=-3.66$ on days \\
+Mann--Whitney U & compares ranks, not minutes. On daily means $p<0.001$; on flights
+$P(\text{we}>\text{wd})=0.45$, medians $-8$ vs $-4$ min. \\
+Paired t-test & a day belongs to one group only \\
+\bottomrule
+\end{tabularx}}
+
+\tpart{c}{Result}
+{\small
+\begin{tabularx}{\linewidth}{@{}K{3.4cm} Y@{}}
+\toprule
+Estimate & $-7.2$ min (1.85 weekend, 9.06 weekday) \\
+95\% confidence interval & $-10.6$ to $-3.8$ min \\
+Test statistic (d.f.) & $t=-4.15$ (254.8) \\
+p-value & $<0.001$ \\
+Decision & reject $H_0$ \\
+\bottomrule
+\end{tabularx}}
+
+\begin{figure}[!ht]
+  \figfile{fig_weekday.pdf}{3.6cm}
+  \caption{Daily mean arrival delay by day of the week. Saturday is lowest; Sunday looks like a
+  weekday.}
+\end{figure}
+
+\egblock{Weekend days have lower arrival delay. Whether the gap is more than 5 minutes is
+uncertain, because the interval reaches $-3.8$. Most of it is Saturday, the day with the fewest
+flights (38{,}720 scheduled, against about 50{,}000 on each weekday): Saturday flights average
+$-1.45$ min, 10.0 min less than weekday flights (CI $-13.6$ to $-6.4$, day-clustered). Sunday
+averages 4.82, 3.75 less (CI $-8.1$ to $+0.6$), which cannot be told apart from a weekday.
+Thursday is the worst day at 11.74 min.}
+
+\minihead{Summary of the five tests}
+{\footnotesize
+\begin{tabularx}{\linewidth}{@{}L{0.3cm} L{2.4cm} L{1.4cm} Y@{}}
+\toprule
+\textbf{\#} & \textbf{Estimate (95\% CI)} & \textbf{Decision} & \textbf{Matters?} \\
+\midrule
+1 & gain $+3.8$ min (2.7, 4.9) & fail to reject & no: mean below 5 min (median 7); padding, not
+catch-up \\
+2 & wet $+19.6$ min (14.8, 24.3) & reject ($p=0.030$) & borderline: $p=0.059$ after calendar
+adjustment \\
+3 & FL $-$ AA $+19.8$ min (16.6, 22.9) & reject & only pairs with EV or FL; $\varepsilon^2=0.025$ \\
+4 & winter $-$ autumn $+2.4$ pp (0.7, 4.1) & reject & not shown above 1 pp; only autumn stands
+apart \\
+5 & weekend $-7.2$ min ($-10.6$, $-3.8$) & reject & real; above 5 min uncertain; a Saturday
+effect \\
+\bottomrule
+\end{tabularx}}
+
+\egblock{With five tests, a Bonferroni level of $0.05/5=0.01$ changes one decision: Test 2 would
+not reject. With 300{,}000 rows almost every flight-level test rejects, so the useful columns are
+whether the interval clears the threshold and whether the result holds with the day as the unit.}
+
+%-----------------------------------------------------------------------
+\section{Limitations}
+
+\begin{itemize}
+  \item \textbf{Association, not cause.} Precipitation comes with low visibility, wind and
+  congestion; Test 2 cannot separate them, and its fixed-effects check removes only calendar and
+  airport effects.
+  \item \textbf{Dependence.} Clustering by day handles flights that share a day, but consecutive
+  days are also correlated (lag-1 $r=0.37$ for daily mean delay), so the day-level p-values are
+  still somewhat optimistic. The Kruskal--Wallis p-value in Test 3 is flight-level; the Friedman
+  and clustered checks cover it.
+  \item \textbf{All flights, not a sample.} The data are every 2013 NYC departure, so p-values
+  measure how unusual a pattern is against chance, not how well it carries to other years.
+  \item \textbf{Survivor bias.} Delay tests use flights that flew. The worst hours cancel flights
+  instead of delaying them, so Test 2 likely understates the effect of bad weather.
+  \item \textbf{Weather at the origin, at the scheduled hour only.} Storms at the destination or a
+  few hours earlier are not measured.
+  \item \textbf{Choices we made.} The 5, 10 and 15-minute and 1-point thresholds follow from the
+  FAA's 15-minute rule and the base rate; others would change the Matters column. Winter is
+  January, February and December of 2013, so it joins two different winters.
+  \item \textbf{Scope.} One year, one city, domestic flights. AirTran has since merged into
+  Southwest and US Airways into American, so Test 3 is a 2013 snapshot.
+\end{itemize}
+
+\end{document}
