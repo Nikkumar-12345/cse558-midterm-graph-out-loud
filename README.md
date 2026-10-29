@@ -30,10 +30,13 @@ All three tables come from the `nycflights13` package (PyPI; also github.com/had
 
 ## How to run
 ```bash
+cd code
 pip install -r requirements.txt
 python analysis.py
 ```
-It runs in about one minute. The script writes to `../report/` (run it from inside `code/`):
+Tested on Python 3.12 in a fresh virtual environment. `requirements.txt` pins `setuptools<81`
+because `nycflights13` imports `pkg_resources`, which newer setuptools no longer ships.
+It runs in about one minute and writes to `../report/`:
 - `results.json`: every number quoted in the report
 - `fig_arrdelay.pdf`, `fig_gain.pdf`, `fig_hour_wet.pdf`, `fig_cancel_daily.pdf` (EDA, Figures 1–4)
 - `fig_carriers.pdf` (Figure 5), `fig_weekday.pdf` (Figure 6)
