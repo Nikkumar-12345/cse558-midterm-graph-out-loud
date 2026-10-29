@@ -16,6 +16,7 @@ Repository: https://github.com/Nikkumar-12345/cse558-midterm-graph-out-loud
 
 ## Quick downloads
 - **Report (PDF):** [`GraphOutLoud_DS_Midterm_Report.pdf`](GraphOutLoud_DS_Midterm_Report.pdf)
+- **Main script:** [`code/analysis.py`](code/analysis.py) (all preparation, EDA and tests in one file)
 - **Everything in one zip** (code, README, LaTeX source, all figures as separate PDFs, `results.json`, report PDF): [`downloads/GraphOutLoud_DS_Midterm_Full.zip`](downloads/GraphOutLoud_DS_Midterm_Full.zip)
 - **All results:** [`report/results.json`](report/results.json); figures in [`report/`](report/)
 
