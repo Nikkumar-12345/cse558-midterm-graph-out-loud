@@ -14,6 +14,11 @@ CSE558 Data Science, Monsoon 2026, IIIT-Delhi
 
 Repository: https://github.com/Nikkumar-12345/cse558-midterm-graph-out-loud
 
+## Quick downloads
+- **Report (PDF):** [`GraphOutLoud_DS_Midterm_Report.pdf`](GraphOutLoud_DS_Midterm_Report.pdf)
+- **Everything in one zip** (code, README, LaTeX source, all figures as separate PDFs, `results.json`, report PDF): [`downloads/GraphOutLoud_DS_Midterm_Full.zip`](downloads/GraphOutLoud_DS_Midterm_Full.zip)
+- **All results:** [`report/results.json`](report/results.json); figures in [`report/`](report/)
+
 ## Data
 - **Flights:** U.S. Bureau of Transportation Statistics (BTS) On-Time Performance records for all
   336,776 domestic flights that departed JFK, LGA and EWR in 2013 (19 columns).
@@ -57,4 +62,5 @@ confidence interval. Each test is compared with the alternatives listed in the r
 - `code/analysis.py`: the full pipeline
 - `code/requirements.txt`: package versions used
 - `report/`: the LaTeX source, figures, `results.json` and the compiled PDF.
+- `downloads/`: the whole project as one zip.
 - `report/CSE558_Project_Report.tex`: compile with pdfLaTeX (Overleaf default) twice, with the figure PDFs in the same folder.
